@@ -23,7 +23,7 @@ class AdminPostsController extends Controller
         //
 
 
-        $posts = Post::all();
+        $posts = Post::paginate(2);
 
 
 
@@ -42,7 +42,7 @@ class AdminPostsController extends Controller
         //
 
 
-        $categories = Category::lists('name','id')->all();
+        $categories = Category::pluck('name','id')->all();
 
 
         return view('admin.posts.create', compact('categories'));
@@ -56,13 +56,10 @@ class AdminPostsController extends Controller
      */
     public function store(PostsCreateRequest $request)
     {
-        //
 
         $input = $request->all();
 
-
         $user = Auth::user();
-
 
         if($file = $request->file('photo_id')){
 
@@ -74,22 +71,12 @@ class AdminPostsController extends Controller
 
             $photo = Photo::create(['file'=>$name]);
 
-
             $input['photo_id'] = $photo->id;
-
-
         }
-
 
         $user->posts()->create($input);
 
-
         return redirect('/admin/posts');
-
-
-
-
-
 
     }
 
@@ -112,14 +99,12 @@ class AdminPostsController extends Controller
      */
     public function edit($id)
     {
-        //
 
         $post = Post::findOrFail($id);
 
-        $categories = Category::lists('name','id')->all();
+        $categories = Category::pluck('name','id')->all();
 
         return view('admin.posts.edit', compact('post','categories'));
-
 
     }
 
@@ -185,4 +170,21 @@ class AdminPostsController extends Controller
 
 
     }
+
+
+    public function post($slug){
+
+
+        $post = Post::findBySlugOrFail($slug);
+
+        $comments = $post->comments()->whereIsActive(1)->get();
+
+
+        return view('post', compact('post','comments'));
+
+
+    }
+
+
+
 }
